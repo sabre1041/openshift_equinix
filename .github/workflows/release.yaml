@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      
+      - name: Install Dependencies
+        run: python3 -m pip install "ansible-core>=2.14.0,<2.15.0"
+
+      - name: Build Collection
+        run: ansible-galaxy collection build .
+
+      - name: Publish collection
+        env:
+          ANSIBLE_GALAXY_API_KEY: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+        run: ansible-galaxy collection publish *.tar.gz --api-key $ANSIBLE_GALAXY_API_KEY

@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ansible_collections/sabre1041/openshift_equinix
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      
+      - name: Install Dependencies
+        run: python3 -m pip install "ansible-core>=2.14.0,<2.15.0"
+
+      - name: Run Sanity Tests
+        run: ansible-test sanity --requirements --color --python 3.10
+        working-directory: ./ansible_collections/sabre1041/openshift_equinix
+      
