@@ -38,7 +38,7 @@
 
 - name: Set OpenShift Pull Secret From Content
   ansible.builtin.set_fact:
-    openshift_pull_secret: "{{ openshift_pull_secret_content }}"
+    openshift_pull_secret: "{{ openshift_pull_secret_content | string }}"
   when: openshift_pull_secret_content is defined and openshift_pull_secret_content | length > 0
 
 - name: Write SNO Cluster Params
