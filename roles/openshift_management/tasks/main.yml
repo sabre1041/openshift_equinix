@@ -1,0 +1,15 @@
+---
+# tasks file for openshift_management
+- name: Prepare Environment
+  ansible.builtin.include_tasks: prep.yml
+
+- name: Software Provisioning
+  ansible.builtin.include_tasks: software.yml
+
+- name: Create OpenShift Cluster (SNO)
+  ansible.builtin.include_tasks: cluster_create.yml
+  when: install_type == 'sno'
+
+- name: Create OpenShift Cluster (ABI)
+  ansible.builtin.include_tasks: cluster_create_abi.yml
+  when: install_type == 'abi'

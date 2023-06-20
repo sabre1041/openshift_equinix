@@ -1,0 +1,5 @@
+packet-python
+aicli
+ailib
+equinix-metal>=0.2.0
+ansible-specdoc>=0.0.13

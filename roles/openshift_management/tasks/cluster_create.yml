@@ -1,0 +1,130 @@
+---
+
+- name: List OpenShift Clusters
+  ansible.builtin.command: aicli -o=json list clusters
+  environment:
+    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+  register: ai_cluster_list_result
+
+- name: Create OpenShift Cluster
+  ansible.builtin.command: aicli create cluster {{ openshift_cluster_name }} --pf "{{ content_dir }}/params"
+  retries: 3
+  delay: 5
+  environment:
+    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+  register: ai_cluster_create_result
+  until: ai_cluster_create_result.rc == 0
+  when: (ai_cluster_list_result.stdout | from_json | selectattr('name','equalto',openshift_cluster_name) | list | length) == 0
+
+- name: Download ISO
+  ansible.builtin.command: aicli download iso {{ openshift_cluster_name }} -p {{ data_dir }}
+  retries: 3
+  delay: 5
+  register: ai_result
+  until: ai_result.rc == 0
+
+- name: Create iPXE artifacts from the ISO
+  containers.podman.podman_container:
+    name: ipxe
+    image: "{{ ipxe_image }}"
+    detach: false
+    state: started
+    remove: yes
+    env:
+      IMAGE: "/data/{{ openshift_cluster_name }}.iso"
+    volume:
+      - "{{ data_dir }}:/data:Z"
+  
+- name: Create nginx container
+  containers.podman.podman_container:
+    name: nginx
+    image: "{{ nginx_image }}"
+    detach: true
+    state: started
+    remove: yes
+    recreate: yes
+    ports:
+      - 8888:8080
+    volume:
+      - "{{ data_dir }}/ipxe:/app:ro"
+
+- name: Update ipxe configuration file
+  ansible.builtin.replace:
+    regexp: localhost
+    replace: "{{ utility_server_ip }}"
+    path: "{{ data_dir }}/ipxe/ipxe"
+
+- name: Update OpenShift Node
+  equinix.cloud.metal_device:
+    project_id: "{{ equinix_project_id }}"
+    id: "{{ openshift_node_id }}"
+    metal_api_token: "{{ equinix_api_token }}"
+    ipxe_script_url: "{{ utility_server_ipxe_url }}"
+    userdata: ""
+    always_pxe: yes
+  delegate_to: localhost
+
+- name: Restart Node
+  ansible.builtin.uri:
+    url: "https://api.equinix.com/metal/v1/devices/{{ openshift_node_id }}/actions"
+    method: POST
+    body_format: json
+    status_code: [200, 202]
+    headers:
+      X-Auth-Token: "{{ equinix_api_token }}"
+      Content-Type: "application/json"
+    body:
+      type: reboot
+  delegate_to: localhost
+
+- name: Wait for Cluster to become ready
+  ansible.builtin.command: aicli -o=json list clusters
+  environment:
+    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+  retries: 20
+  delay: 60
+  until: "(ai_cluster_ready_result.stdout | from_json | selectattr('name','equalto',openshift_cluster_name) | list | first).status == 'ready'"
+  register: ai_cluster_ready_result
+
+- name: Update OpenShift Node (Disable IPXE)
+  equinix.cloud.metal_device:
+    project_id: "{{ equinix_project_id }}"
+    id: "{{ openshift_node_id }}"
+    metal_api_token: "{{ equinix_api_token }}"
+    always_pxe: no
+  delegate_to: localhost
+
+- name: Start OpenShift Cluster install
+  ansible.builtin.command: "aicli start cluster {{ openshift_cluster_name }}"
+  retries: 3
+  delay: 5
+  environment:
+    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+
+- name: Wait 1 hour for cluster install to complete
+  ansible.builtin.command: aicli -o=json list clusters
+  environment:
+    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+  retries: 60
+  delay: 60
+  until: "(ai_cluster_installed_result.stdout | from_json | selectattr('name','equalto',openshift_cluster_name) | list | first).status == 'installed'"
+  register: ai_cluster_installed_result
+
+- name: Download kubeadmin-password file
+  ansible.builtin.command: aicli download kubeadmin-password {{ openshift_cluster_name }}
+  environment:
+    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+  args:
+    chdir: "{{ content_dir }}"
+
+- name: Read Content of kubeadmin-password file
+  ansible.builtin.slurp:
+    path: "{{ content_dir }}/kubeadmin-password.{{ openshift_cluster_name }}"
+  register: kubeadmin_password
+
+- name: Print summary
+  ansible.builtin.debug:
+    msg:
+          - "================ SUMMARY ================="
+          - "OpenShift console: https://openshift-console-openshift.apps.{{ openshift_cluster_name }}.{{ openshift_base_domain }}"
+          - "Kubeadmin password: {{ kubeadmin_password['content'] | b64decode }}"

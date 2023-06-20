@@ -1,0 +1,27 @@
+---
+# defaults file for openshift_management
+system_packages:
+  - podman
+  - python3
+  - nmstate
+
+python_packages:
+  - aicli
+
+openshift_cluster_name: ""
+
+temp_dir: /tmp/openshift_equinix/{{ openshift_cluster_name }}
+base_content_dir: /root/openshift_equinix/{{ openshift_cluster_name }}
+content_dir: "{{ base_content_dir }}/content"
+data_dir: "{{ base_content_dir }}/data"
+
+ipxe_image: quay.io/ohadlevy/ai-ipxe:latest
+nginx_image: docker.io/bitnami/nginx:latest
+
+install_type: sno
+
+cli_download:
+  - url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+    archive: "{{ temp_dir }}/openshift-client.tar.gz"
+  - url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux.tar.gz
+    archive: "{{ temp_dir }}/openshift-install.tar.gz"

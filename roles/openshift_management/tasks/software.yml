@@ -1,0 +1,22 @@
+- name: Install system packages
+  ansible.builtin.package:
+    name: "{{ system_packages }}"
+    state: present
+
+- name: Install python packages
+  ansible.builtin.pip:
+    name: "{{ python_packages }}"
+    state: present
+
+- name: Download CLI's
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.archive }}"
+  loop: "{{ cli_download }}"
+
+- name: Uncompress CLI's
+  unarchive:
+    src: "{{ item.archive }}"
+    dest: /usr/bin
+    remote_src: true
+  loop: "{{ cli_download }}"

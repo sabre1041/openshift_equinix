@@ -1,0 +1,28 @@
+---
+- name: Deploy Utility Server
+  hosts: localhost
+  vars:
+    ansible_connection: local
+  tasks:
+    - name: Provision Utility Server
+      ansible.builtin.include_role: 
+        name: sabre1041.openshift_equinix.machine_management
+        tasks_from: provision.yml
+
+- name: Configure OpenShift
+  hosts: utility_server
+  remote_user: root
+  vars:
+    ssh_public_key: "{{ hostvars['localhost']['ssh_public_key'] }}"
+    openshift_node_ip: "{{ hostvars['localhost']['openshift_node_ip'] }}"
+    openshift_node_id: "{{ hostvars['localhost']['openshift_node_id'] }}"
+    openshift_node_mac: "{{ hostvars['localhost']['openshift_node_mac'] }}"
+    openshift_node_gateway: "{{ hostvars['localhost']['openshift_node_gateway'] }}"
+    openshift_node_netmask: "{{ hostvars['localhost']['openshift_node_netmask'] }}"
+    utility_server_ip: "{{ hostvars['localhost']['utility_server_ip'] }}"
+    utility_server_ipxe_url: "http://{{ utility_server_ip }}:8888/ipxe"
+  tasks:
+    - name: Configure SNO
+      ansible.builtin.include_role: 
+        name: sabre1041.openshift_equinix.openshift_management
+#        tasks_from: cluster_create.yml

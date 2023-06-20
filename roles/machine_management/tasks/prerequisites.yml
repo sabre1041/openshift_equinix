@@ -1,0 +1,67 @@
+---
+
+- name: Verify Required Parameters Have Been Provided
+  ansible.builtin.assert:
+    that:
+      - item.content is defined
+      - item.content | length > 0
+    fail_msg: "Variable '{{ item.variable }}' has not been provided"
+    quiet: true
+  loop:
+    - { content: "{{ equinix_api_token | default('') }}", variable: "equinix_api_token" }
+    - { content: "{{ equinix_organization_id | default('') }}", variable: "equinix_organization_id" }
+    - { content: "{{ equinix_project_id | default('') }}", variable: "equinix_project_id" }
+    - { content: "{{ equinix_metro | default('') }}", variable: "equinix_metro" }
+    - { content: "{{ equinix_plan | default('') }}", variable: "equinix_plan" }
+
+- name: Ensure Private SSH Variables Set
+  ansible.builtin.assert:
+    that:
+      - (ssh_public_key_file is defined and ssh_public_key_file | length > 0) or (ssh_public_key_content is defined and ssh_public_key_content | length > 0)
+      - (ssh_private_key_file is defined and ssh_private_key_file | length > 0) or (ssh_private_key_content is defined and ssh_private_key_content | length > 0)
+    fail_msg: "Required SSH Key variables have not been provided"
+    quiet: true
+
+- name: Set Private SSH Key Sourced From file
+  block:
+    - name: Private SSH Key File Stat
+      ansible.builtin.stat:
+        path: "{{ ssh_private_key_file }}"
+      register: ssh_private_key_file_stat
+
+    - name: Fail When Private SSH Key Not Found
+      fail:
+        msg: "Private SSH Key File '{{ ssh_private_key_file }} Not Found"
+      when: not ssh_private_key_file_stat.stat.exists
+    
+    - name: Set Private SSH Key File From File
+      ansible.builtin.set_fact:
+        ssh_private_key: "{{ lookup('ansible.builtin.file', ssh_private_key_file) }}"
+  when: ssh_private_key_file is defined and ssh_private_key_file | length > 0
+
+- name: Set Private SSH Key File From Content
+  ansible.builtin.set_fact:
+    ssh_private_key: "{{ ssh_private_key_file_content }}"
+  when: ssh_private_key_file_content is defined and ssh_private_key_file_content | length > 0
+
+- name: Set Public SSH Key Sourced From file
+  block:
+    - name: Public SSH Key File Stat
+      ansible.builtin.stat:
+        path: "{{ ssh_public_key_file }}"
+      register: ssh_public_key_file_stat
+
+    - name: Fail When Public SSH Key Not Found
+      fail:
+        msg: "Public SSH Key File '{{ ssh_public_key_file }} Not Found"
+      when: not ssh_private_key_file_stat.stat.exists
+    
+    - name: Set Public SSH Key File From File
+      ansible.builtin.set_fact:
+        ssh_public_key: "{{ lookup('ansible.builtin.file', ssh_public_key_file) }}"
+  when: ssh_public_key_file is defined and ssh_public_key_file | length > 0
+
+- name: Set Public SSH Key File From Content
+  ansible.builtin.set_fact:
+    ssh_private_key: "{{ ssh_public_key_file_content }}"
+  when: ssh_public_key_file_content is defined and ssh_public_key_file_content | length > 0

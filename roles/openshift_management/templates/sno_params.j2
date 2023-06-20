@@ -1,0 +1,31 @@
+sno: true
+ssh_public_key: {{ ssh_public_key }}
+base_dns_domain: {{ openshift_base_domain }}
+api_vip: {{ openshift_node_ip }}
+ingress_vip: {{ openshift_node_ip }}
+pull_secret: {{ content_dir }}/openshift_pull.json
+static_network_config:
+- interfaces:
+    - name: ens3f0
+      type: ethernet
+      state: up
+      ethernet:
+        auto-negotiation: true
+        duplex: full
+      ipv4:
+        address:
+        - ip: {{ openshift_node_ip }}
+          prefix-length: 24
+        enabled: true
+      mtu: 1500
+      mac-address: '{{ openshift_node_mac }}'
+  dns-resolver:
+    config:
+      server:
+      - 8.8.8.8
+  routes:
+    config:
+    - destination: 0.0.0.0/0
+      next-hop-address: {{ openshift_node_gateway }}
+      next-hop-interface: ens3f0
+      table-id: 254

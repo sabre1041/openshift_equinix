@@ -1,0 +1,23 @@
+- name: Verify required parameters have been provided
+  ansible.builtin.include_tasks: prerequisites.yml
+
+# - name: Query For Utility Server
+#   equinix.cloud.metal_device_info:
+#     project_id: "{{ project_id }}"
+#     hostnames:
+#       - "{{ utility_machine_hostname }}"
+#   register: utility_server_query_result
+
+# - name: Destroy Utility Server
+#   block:
+#     - name: Destroy Utility Server
+#   when: utility_server_query_result.devices | length > 0
+
+
+- name: Destroy Utility Server
+  equinix.cloud.metal_device:
+    project_id: "{{ equinix_project_id }}"
+    hostnames: "{{ utility_machine_hostname }}"
+    state: absent
+    wait_timeout: "{{ utility_provision_timeout }}"
+    api_token: "{{ equinix_api_token }}"

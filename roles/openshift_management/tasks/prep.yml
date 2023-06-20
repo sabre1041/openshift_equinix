@@ -1,0 +1,73 @@
+---
+
+- name: Delete Existing Directories (If Exists)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ content_dir }}"
+    - "{{ data_dir}}"
+    - "{{ temp_dir }}"
+
+- name: Create Required Directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ content_dir }}"
+    - "{{ data_dir}}"
+    - "{{ temp_dir }}"
+
+- name: Set OpenShift Pull Secret Sourced From file
+  block:
+    - name: OpenShift Pull Secret File Stat
+      ansible.builtin.stat:
+        path: "{{ openshift_pull_secret_file }}"
+      register: openshift_pull_secret_file_stat
+      delegate_to: localhost
+
+    - name: Fail When OpenShift Pull Secret File Not Found
+      fail:
+        msg: "OpenShift Pull Secret File '{{ openshift_pull_secret_file }} Not Found"
+      when: not openshift_pull_secret_file_stat.stat.exists
+    
+    - name: Set OpenShift Pull Secret File From File
+      ansible.builtin.set_fact:
+        openshift_pull_secret: "{{ lookup('ansible.builtin.file', openshift_pull_secret_file)|string }}"
+  when: openshift_pull_secret_file is defined and openshift_pull_secret_file | length > 0
+
+- name: Set OpenShift Pull Secret From Content
+  ansible.builtin.set_fact:
+    openshift_pull_secret: "{{ openshift_pull_secret_content }}"
+  when: openshift_pull_secret_content is defined and openshift_pull_secret_content | length > 0
+
+- name: Write SNO Cluster Params
+  block:
+    - name: Write OpenShift Pull Secret
+      ansible.builtin.copy:
+        dest: "{{ content_dir }}/openshift_pull.json"
+        content: "{{ openshift_pull_secret }}"
+
+    - name: Write SNO Cluster Params
+      ansible.builtin.template:
+        src: sno_params.j2
+        dest: "{{ content_dir }}/params"
+  when: install_type == "sno"
+
+- name: Write ABI Cluster Params
+  block:
+    - name: Write install-config.yaml
+      ansible.builtin.template:
+        src: sno_install_config.j2
+        dest: "{{ content_dir }}/install-config.yaml"
+
+    - name: Write agent-config.yaml
+      ansible.builtin.template:
+        src: sno_agent_config.j2
+        dest: "{{ content_dir }}/agent-config.yaml"
+  when: install_type == "abi"
+
+- name: Add API name to hosts file
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ openshift_node_ip }}    api.{{ openshift_cluster_name }}.{{ openshift_base_domain }}"

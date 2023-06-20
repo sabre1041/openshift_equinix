@@ -1,0 +1,27 @@
+---
+# defaults file for machine_management
+ssh_private_key: ""
+ssh_private_key_file: ""
+ssh_private_key_content: ""
+
+ssh_public_key: ""
+ssh_public_key_file: ""
+ssh_public_key_content: ""
+
+# Common Variables
+utility_machine_hostname: utility
+utility_machine_operating_system: rhel_8
+utility_provision_timeout: 600
+utility_machine_ansible_groups: utility_server
+openshift_machine_operating_system: custom_ipxe
+
+# Equinix Variables
+equinix_api_token: ""
+equinix_organization: ""
+equinix_project_id: ""
+equinix_metro: ""
+equinix_plan: "c3.small.x86"
+
+# OpenShift Variables
+openshift_cluster_name: ""
+openshift_base_domain: ""

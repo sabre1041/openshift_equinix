@@ -1,0 +1,64 @@
+- name: Verify required parameters have been provided
+  ansible.builtin.include_tasks: prerequisites.yml
+
+- name: Deploy utility server
+  equinix.cloud.metal_device:
+    project_id: "{{ equinix_project_id }}"
+    hostname: "{{ utility_machine_hostname }}"
+    operating_system: "{{ utility_machine_operating_system }}"
+    plan: "{{ equinix_plan }}"
+    metro: "{{ equinix_metro }}"
+    state: present
+    provisioning_wait_seconds: "{{ utility_provision_timeout }}"
+    metal_api_token: "{{ equinix_api_token }}"
+  register: utility_server_deploy_result
+
+- name: Deploy openshift server
+  equinix.cloud.metal_device:
+    project_id: "{{ equinix_project_id }}"
+    hostname: "{{ openshift_cluster_name }}"
+    operating_system: custom_ipxe
+    plan: "{{ equinix_plan }}"
+    metro: "{{ equinix_metro }}"
+    state: present
+    provisioning_wait_seconds: "{{ utility_provision_timeout }}"
+    metal_api_token: "{{ equinix_api_token }}"
+    userdata: |
+      #!ipxe
+      shell
+  register: openshift_node_deploy_result
+
+- name: Get Utility Server Device Info
+  ansible.builtin.uri:
+    url: "https://api.equinix.com/metal/v1/devices/{{ utility_server_deploy_result.id }}"
+    headers:
+      X-Auth-Token: "{{ equinix_api_token }}"
+      Content-Type: "application/json"
+    return_content: true
+  register: utility_server_device
+
+- name: Get OpenShift Node Device Info
+  ansible.builtin.uri:
+    url: "https://api.equinix.com/metal/v1/devices/{{ openshift_node_deploy_result.id }}"
+    headers:
+      X-Auth-Token: "{{ equinix_api_token }}"
+      Content-Type: "application/json"
+    return_content: true
+  register: openshift_node_device
+
+- name: Set Utility Server Variables
+  set_fact:
+    utility_server_id: "{{ utility_server_device.json.id }}"
+    utility_server_ip: "{{ utility_server_device.json.ip_addresses[0].address }}"
+    openshift_node_id: "{{ openshift_node_device.json.id }}"
+    openshift_node_gateway: "{{ openshift_node_device.json.ip_addresses[0].gateway }}"
+    openshift_node_mac: "{{ openshift_node_device.json.network_ports[0].data.mac }}"
+    openshift_node_ip: "{{ openshift_node_device.json.ip_addresses[0].address }}"
+    openshift_node_netmask: "{{ openshift_node_device.json.ip_addresses[0].cidr }}"
+
+- name: Add utility host
+  add_host:
+    hostname: "{{ utility_machine_hostname }}"
+    ansible_ssh_host: "{{ utility_server_ip }}"
+    ansible_private_key_file: "{{ ssh_private_key }}"
+    groups: "{{ utility_machine_ansible_groups }}"
