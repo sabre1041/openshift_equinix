@@ -10,7 +10,6 @@ authors:
 - Andrew Block <ablock@redhat.com>
 - Federico Rossi <ferossi@redhat.com>
 
-
 description: ""
 
 license_file: LICENSE
@@ -30,19 +29,6 @@ documentation: https://github.com/sabre1041/openshift_equinix
 
 homepage: https://github.com/sabre1041/openshift_equinix
 
-# The URL to the collection issue tracker
 issues: https://github.com/sabre1041/openshift_equinix/issues
 
-# A list of file glob-like patterns used to filter any files or directories that should not be included in the build
-# artifact. A pattern is matched from the relative path of the file or directory of the collection directory. This
-# uses 'fnmatch' to match the files or directories. Some directories and files like 'galaxy.yml', '*.pyc', '*.retry',
-# and '.git' are always filtered. Mutually exclusive with 'manifest'
 build_ignore: []
-
-# A dict controlling use of manifest directives used in building the collection artifact. The key 'directives' is a
-# list of MANIFEST.in style
-# L(directives,https://packaging.python.org/en/latest/guides/using-manifest-in/#manifest-in-commands). The key
-# 'omit_default_directives' is a boolean that controls whether the default directives are used. Mutually exclusive
-# with 'build_ignore'
-# manifest: null
-
