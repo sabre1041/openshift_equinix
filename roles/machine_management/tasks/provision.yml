@@ -47,7 +47,7 @@
   register: openshift_node_device
 
 - name: Set Utility Server Variables
-  set_fact:
+  ansible.builtin.set_fact:
     utility_server_id: "{{ utility_server_device.json.id }}"
     utility_server_ip: "{{ utility_server_device.json.ip_addresses[0].address }}"
     openshift_node_id: "{{ openshift_node_device.json.id }}"
@@ -57,7 +57,7 @@
     openshift_node_netmask: "{{ openshift_node_device.json.ip_addresses[0].cidr }}"
 
 - name: Add utility host
-  add_host:
+  ansible.builtin.add_host:
     hostname: "{{ utility_machine_hostname }}"
     ansible_ssh_host: "{{ utility_server_ip }}"
     ansible_private_key_file: "{{ ssh_private_key }}"

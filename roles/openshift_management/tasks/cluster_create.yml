@@ -29,20 +29,20 @@
     image: "{{ ipxe_image }}"
     detach: false
     state: started
-    remove: yes
+    remove: true
     env:
       IMAGE: "/data/{{ openshift_cluster_name }}.iso"
     volume:
       - "{{ data_dir }}:/data:Z"
-  
+
 - name: Create nginx container
   containers.podman.podman_container:
     name: nginx
     image: "{{ nginx_image }}"
     detach: true
     state: started
-    remove: yes
-    recreate: yes
+    remove: true
+    recreate: true
     ports:
       - 8888:8080
     volume:
@@ -61,7 +61,7 @@
     metal_api_token: "{{ equinix_api_token }}"
     ipxe_script_url: "{{ utility_server_ipxe_url }}"
     userdata: ""
-    always_pxe: yes
+    always_pxe: true
   delegate_to: localhost
 
 - name: Restart Node
@@ -91,7 +91,7 @@
     project_id: "{{ equinix_project_id }}"
     id: "{{ openshift_node_id }}"
     metal_api_token: "{{ equinix_api_token }}"
-    always_pxe: no
+    always_pxe: false
   delegate_to: localhost
 
 - name: Start OpenShift Cluster install
@@ -125,6 +125,6 @@
 - name: Print summary
   ansible.builtin.debug:
     msg:
-          - "================ SUMMARY ================="
-          - "OpenShift console: https://openshift-console-openshift.apps.{{ openshift_cluster_name }}.{{ openshift_base_domain }}"
-          - "Kubeadmin password: {{ kubeadmin_password['content'] | b64decode }}"
+      - "================ SUMMARY ================="
+      - "OpenShift console: https://openshift-console-openshift.apps.{{ openshift_cluster_name }}.{{ openshift_base_domain }}"
+      - "Kubeadmin password: {{ kubeadmin_password['content'] | b64decode }}"

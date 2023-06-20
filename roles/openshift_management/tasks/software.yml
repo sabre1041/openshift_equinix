@@ -15,7 +15,7 @@
   loop: "{{ cli_download }}"
 
 - name: Uncompress CLI's
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ item.archive }}"
     dest: /usr/bin
     remote_src: true

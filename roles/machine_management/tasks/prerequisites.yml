@@ -29,10 +29,10 @@
       register: ssh_private_key_file_stat
 
     - name: Fail When Private SSH Key Not Found
-      fail:
+      ansible.builtin.fail:
         msg: "Private SSH Key File '{{ ssh_private_key_file }} Not Found"
       when: not ssh_private_key_file_stat.stat.exists
-    
+
     - name: Set Private SSH Key File From File
       ansible.builtin.set_fact:
         ssh_private_key: "{{ lookup('ansible.builtin.file', ssh_private_key_file) }}"
@@ -40,8 +40,8 @@
 
 - name: Set Private SSH Key File From Content
   ansible.builtin.set_fact:
-    ssh_private_key: "{{ ssh_private_key_file_content }}"
-  when: ssh_private_key_file_content is defined and ssh_private_key_file_content | length > 0
+    ssh_private_key: "{{ ssh_private_key_content }}"
+  when: ssh_private_key_content is defined and ssh_private_key_content | length > 0
 
 - name: Set Public SSH Key Sourced From file
   block:
@@ -51,10 +51,10 @@
       register: ssh_public_key_file_stat
 
     - name: Fail When Public SSH Key Not Found
-      fail:
+      ansible.builtin.fail:
         msg: "Public SSH Key File '{{ ssh_public_key_file }} Not Found"
       when: not ssh_private_key_file_stat.stat.exists
-    
+
     - name: Set Public SSH Key File From File
       ansible.builtin.set_fact:
         ssh_public_key: "{{ lookup('ansible.builtin.file', ssh_public_key_file) }}"
@@ -62,5 +62,5 @@
 
 - name: Set Public SSH Key File From Content
   ansible.builtin.set_fact:
-    ssh_private_key: "{{ ssh_public_key_file_content }}"
-  when: ssh_public_key_file_content is defined and ssh_public_key_file_content | length > 0
+    ssh_public_key: "{{ ssh_public_key_content }}"
+  when: ssh_public_key_content is defined and ssh_public_key_content | length > 0

@@ -2,19 +2,20 @@ namespace: sabre1041
 
 name: openshift_equinix
 
-version: 0.0.2
+version: 0.0.3
 
 readme: README.md
 
 authors:
-- Andrew Block <ablock@redhat.com>
-- Federico Rossi <ferossi@redhat.com>
+  - Andrew Block <ablock@redhat.com>
+  - Federico Rossi <ferossi@redhat.com>
 
 description: ""
 
 license_file: LICENSE
 
 tags:
+  - cloud
   - equinix
   - openshift
   - metal
@@ -31,4 +32,6 @@ homepage: https://github.com/sabre1041/openshift_equinix
 
 issues: https://github.com/sabre1041/openshift_equinix/issues
 
-build_ignore: []
+build_ignore:
+  - requirements.txt
+  - .gitignore

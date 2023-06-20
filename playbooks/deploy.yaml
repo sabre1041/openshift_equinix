@@ -5,7 +5,7 @@
     ansible_connection: local
   tasks:
     - name: Provision Utility Server
-      ansible.builtin.include_role: 
+      ansible.builtin.include_role:
         name: sabre1041.openshift_equinix.machine_management
         tasks_from: provision.yml
 
@@ -23,6 +23,5 @@
     utility_server_ipxe_url: "http://{{ utility_server_ip }}:8888/ipxe"
   tasks:
     - name: Configure SNO
-      ansible.builtin.include_role: 
+      ansible.builtin.include_role:
         name: sabre1041.openshift_equinix.openshift_management
-#        tasks_from: cluster_create.yml

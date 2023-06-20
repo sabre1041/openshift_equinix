@@ -12,7 +12,7 @@
     image: "{{ ipxe_image }}"
     detach: false
     state: started
-    remove: yes
+    remove: true
     volume:
       - "{{ data_dir }}:/data:Z"
 
@@ -22,8 +22,8 @@
     image: "{{ nginx_image }}"
     detach: true
     state: started
-    remove: yes
-    recreate: yes
+    remove: true
+    recreate: true
     ports:
       - 8888:8080
     volume:
@@ -42,7 +42,7 @@
     metal_api_token: "{{ equinix_api_token }}"
     ipxe_script_url: "{{ utility_server_ipxe_url }}"
     userdata: ""
-    always_pxe: yes
+    always_pxe: true
   delegate_to: localhost
 
 - name: Restart Node
@@ -59,12 +59,12 @@
   delegate_to: localhost
 
 - name: (OCP) Monitor installation status
-  shell: openshift-install --dir {{ content_dir }} agent wait-for bootstrap-complete --log-level=debug 2> {{ temp_dir }}/install.log &
-  async: 1800 
+  ansible.builtin.shell: openshift-install --dir {{ content_dir }} agent wait-for bootstrap-complete --log-level=debug 2> {{ temp_dir }}/install.log &
+  async: 1800
   poll: 30
 
 - name: (OCP) Monitor installation status - cluster installation start
-  wait_for:
+  ansible.builtin.wait_for:
     path: "{{ temp_dir }}/install.log"
     search_regex: Cluster installation in progress
     connect_timeout: 1200
@@ -75,7 +75,7 @@
     project_id: "{{ equinix_project_id }}"
     id: "{{ openshift_node_id }}"
     metal_api_token: "{{ equinix_api_token }}"
-    always_pxe: no
+    always_pxe: false
   delegate_to: localhost
 
 - name: Stop nginx container
@@ -84,12 +84,12 @@
     state: stopped
 
 - name: Monitor installation status - bootstrap-completed
-  command: "openshift-install --dir {{ content_dir }} agent wait-for bootstrap-complete --log-level=debug"
+  ansible.builtin.command: "openshift-install --dir {{ content_dir }} agent wait-for bootstrap-complete --log-level=debug"
   timeout: 2500
   register: abi_bootstrap
 
 - name: Monitor installation status - install-completed
-  command: openshift-install --dir {{ content_dir }} agent wait-for install-complete --log-level=debug
+  ansible.builtin.command: openshift-install --dir {{ content_dir }} agent wait-for install-complete --log-level=debug
   register: abi_install
   timeout: 2500
 
@@ -101,6 +101,6 @@
 - name: Print summary
   ansible.builtin.debug:
     msg:
-          - "================ SUMMARY ================="
-          - "OpenShift console: https://openshift-console-openshift.apps.{{ openshift_cluster_name }}.{{ openshift_base_domain }}"
-          - "Kubeadmin password: {{ kubeadmin_password['content'] | b64decode }}"
+      - "================ SUMMARY ================="
+      - "OpenShift console: https://openshift-console-openshift.apps.{{ openshift_cluster_name }}.{{ openshift_base_domain }}"
+      - "Kubeadmin password: {{ kubeadmin_password['content'] | b64decode }}"

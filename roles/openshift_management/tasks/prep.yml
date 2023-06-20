@@ -6,7 +6,7 @@
     state: absent
   loop:
     - "{{ content_dir }}"
-    - "{{ data_dir}}"
+    - "{{ data_dir }}"
     - "{{ temp_dir }}"
 
 - name: Create Required Directories
@@ -15,7 +15,7 @@
     state: directory
   loop:
     - "{{ content_dir }}"
-    - "{{ data_dir}}"
+    - "{{ data_dir }}"
     - "{{ temp_dir }}"
 
 - name: Set OpenShift Pull Secret Sourced From file
@@ -27,13 +27,13 @@
       delegate_to: localhost
 
     - name: Fail When OpenShift Pull Secret File Not Found
-      fail:
+      ansible.builtin.fail:
         msg: "OpenShift Pull Secret File '{{ openshift_pull_secret_file }} Not Found"
       when: not openshift_pull_secret_file_stat.stat.exists
-    
+
     - name: Set OpenShift Pull Secret File From File
       ansible.builtin.set_fact:
-        openshift_pull_secret: "{{ lookup('ansible.builtin.file', openshift_pull_secret_file)|string }}"
+        openshift_pull_secret: "{{ lookup('ansible.builtin.file', openshift_pull_secret_file) | string }}"
   when: openshift_pull_secret_file is defined and openshift_pull_secret_file | length > 0
 
 - name: Set OpenShift Pull Secret From Content
