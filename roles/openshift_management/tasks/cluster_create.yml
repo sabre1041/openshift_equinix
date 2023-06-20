@@ -3,7 +3,7 @@
 - name: List OpenShift Clusters
   ansible.builtin.command: aicli -o=json list clusters
   environment:
-    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+    AI_OFFLINETOKEN: "{{ openshift_ai_offlinetoken }}"
   register: ai_cluster_list_result
 
 - name: Create OpenShift Cluster
@@ -11,7 +11,7 @@
   retries: 3
   delay: 5
   environment:
-    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+    AI_OFFLINETOKEN: "{{ openshift_ai_offlinetoken }}"
   register: ai_cluster_create_result
   until: ai_cluster_create_result.rc == 0
   when: (ai_cluster_list_result.stdout | from_json | selectattr('name','equalto',openshift_cluster_name) | list | length) == 0
@@ -80,7 +80,7 @@
 - name: Wait for Cluster to become ready
   ansible.builtin.command: aicli -o=json list clusters
   environment:
-    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+    AI_OFFLINETOKEN: "{{ openshift_ai_offlinetoken }}"
   retries: 20
   delay: 60
   until: "(ai_cluster_ready_result.stdout | from_json | selectattr('name','equalto',openshift_cluster_name) | list | first).status == 'ready'"
@@ -99,12 +99,12 @@
   retries: 3
   delay: 5
   environment:
-    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+    AI_OFFLINETOKEN: "{{ openshift_ai_offlinetoken }}"
 
 - name: Wait 1 hour for cluster install to complete
   ansible.builtin.command: aicli -o=json list clusters
   environment:
-    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+    AI_OFFLINETOKEN: "{{ openshift_ai_offlinetoken }}"
   retries: 60
   delay: 60
   until: "(ai_cluster_installed_result.stdout | from_json | selectattr('name','equalto',openshift_cluster_name) | list | first).status == 'installed'"
@@ -113,7 +113,7 @@
 - name: Download kubeadmin-password file
   ansible.builtin.command: aicli download kubeadmin-password {{ openshift_cluster_name }}
   environment:
-    AI_OFFLINETOKEN: "{{ ai_offlinetoken }}"
+    AI_OFFLINETOKEN: "{{ openshift_ai_offlinetoken }}"
   args:
     chdir: "{{ content_dir }}"
 

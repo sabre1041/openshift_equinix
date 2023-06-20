@@ -9,7 +9,6 @@
     quiet: true
   loop:
     - { content: "{{ equinix_api_token | default('') }}", variable: "equinix_api_token" }
-    - { content: "{{ equinix_organization_id | default('') }}", variable: "equinix_organization_id" }
     - { content: "{{ equinix_project_id | default('') }}", variable: "equinix_project_id" }
     - { content: "{{ equinix_metro | default('') }}", variable: "equinix_metro" }
     - { content: "{{ equinix_plan | default('') }}", variable: "equinix_plan" }
