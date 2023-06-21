@@ -71,3 +71,4 @@
   ansible.builtin.lineinfile:
     path: /etc/hosts
     line: "{{ openshift_node_ip }}    api.{{ openshift_cluster_name }}.{{ openshift_base_domain }}"
+    regexp: '.* api.{{ openshift_cluster_name }}.{{ openshift_base_domain }}$'

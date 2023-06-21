@@ -25,3 +25,4 @@ equinix_plan: "c3.small.x86"
 # OpenShift Variables
 openshift_cluster_name: ""
 openshift_base_domain: ""
+
