@@ -2,7 +2,7 @@ namespace: sabre1041
 
 name: openshift_equinix
 
-version: 0.0.6
+version: 0.0.7
 
 readme: README.md
 
